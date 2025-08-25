@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese Learning App</title>
+    <link rel="stylesheet" href="../static/css/main.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div id="app" x-data="appData()" x-init="init()">
+        <!-- Navigation Header -->
+        <header class="header">
+            <div class="container">
+                <h1 class="logo">Japanese Learning App</h1>
+                <nav class="nav">
+                    <template x-if="!isLoggedIn">
+                        <div class="auth-buttons">
+                            <button @click="showLogin = true" class="btn btn-primary">Login</button>
+                            <button @click="showRegister = true" class="btn btn-secondary">Register</button>
+                        </div>
+                    </template>
+                    <template x-if="isLoggedIn">
+                        <div class="user-menu">
+                            <span>Welcome, <span x-text="user.username"></span>!</span>
+                            <button @click="logout()" class="btn btn-outline">Logout</button>
+                        </div>
+                    </template>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="container">
+                <!-- Login Modal -->
+                <div x-show="showLogin" class="modal" x-transition>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Login</h2>
+                            <button @click="showLogin = false" class="close-btn">&times;</button>
+                        </div>
+                        <form @submit.prevent="login()">
+                            <div class="form-group">
+                                <label for="login-username">Username:</label>
+                                <input type="text" id="login-username" x-model="loginForm.username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password:</label>
+                                <input type="password" id="login-password" x-model="loginForm.password" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Login</button>
+                                <button type="button" @click="showLogin = false" class="btn btn-secondary">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Register Modal -->
+                <div x-show="showRegister" class="modal" x-transition>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Register</h2>
+                            <button @click="showRegister = false" class="close-btn">&times;</button>
+                        </div>
+                        <form @submit.prevent="register()">
+                            <div class="form-group">
+                                <label for="register-username">Username:</label>
+                                <input type="text" id="register-username" x-model="registerForm.username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="register-email">Email:</label>
+                                <input type="email" id="register-email" x-model="registerForm.email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="register-password">Password:</label>
+                                <input type="password" id="register-password" x-model="registerForm.password" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Register</button>
+                                <button type="button" @click="showRegister = false" class="btn btn-secondary">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Dashboard - shown when logged in -->
+                <div x-show="isLoggedIn" class="dashboard">
+                    <div class="dashboard-header">
+                        <h2>Your Japanese Learning Dashboard</h2>
+                        <p>Start your learning journey by uploading an ebook!</p>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Words Learned</h3>
+                            <div class="stat-number" x-text="user.total_words_learned || 0"></div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Reading Time</h3>
+                            <div class="stat-number" x-text="(user.total_reading_time || 0) + ' min'"></div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Streak Days</h3>
+                            <div class="stat-number" x-text="user.streak_days || 0"></div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Books</h3>
+                            <div class="stat-number" x-text="books.length"></div>
+                        </div>
+                    </div>
+
+                    <!-- Book Upload -->
+                    <div class="upload-section">
+                        <h3>Upload New Book</h3>
+                        <div class="upload-area" @click="$refs.fileInput.click()">
+                            <input type="file" x-ref="fileInput" @change="uploadBook($event)" accept=".epub,.txt,.pdf" style="display: none;">
+                            <div class="upload-content">
+                                <div class="upload-icon">📚</div>
+                                <p>Click to upload an ebook (EPUB, TXT, or PDF)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Books List -->
+                    <div class="books-section">
+                        <h3>Your Books</h3>
+                        <template x-if="books.length === 0">
+                            <p class="no-books">No books uploaded yet. Upload your first book to get started!</p>
+                        </template>
+                        <div class="books-grid">
+                            <template x-for="book in books" :key="book.id">
+                                <div class="book-card">
+                                    <div class="book-info">
+                                        <h4 x-text="book.title"></h4>
+                                        <p x-text="book.author || 'Unknown Author'"></p>
+                                        <div class="book-stats">
+                                            <span class="progress">Progress: <span x-text="book.reading_progress + '%'"></span></span>
+                                        </div>
+                                    </div>
+                                    <div class="book-actions">
+                                        <button @click="openReader(book)" class="btn btn-primary btn-sm">Read</button>
+                                        <button @click="deleteBook(book.id)" class="btn btn-danger btn-sm">Delete</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Welcome Screen - shown when not logged in -->
+                <div x-show="!isLoggedIn" class="welcome">
+                    <div class="welcome-content">
+                        <h2>Welcome to Japanese Learning App</h2>
+                        <p>A comprehensive web application for learning Japanese, similar to LingQ but focused exclusively on Japanese language learning.</p>
+                        
+                        <div class="features-grid">
+                            <div class="feature-card">
+                                <h3>📚 Custom Ebook Reader</h3>
+                                <p>Upload and read Japanese ebooks with integrated dictionary lookup</p>
+                            </div>
+                            <div class="feature-card">
+                                <h3>📖 Word Lookup</h3>
+                                <p>Click any word to see definitions, readings, and pronunciations</p>
+                            </div>
+                            <div class="feature-card">
+                                <h3>🎯 SRS System</h3>
+                                <p>Spaced Repetition System for effective vocabulary learning</p>
+                            </div>
+                            <div class="feature-card">
+                                <h3>🌈 Progress Tracking</h3>
+                                <p>Visual indicators for known/unknown words and detailed statistics</p>
+                            </div>
+                        </div>
+
+                        <div class="welcome-actions">
+                            <button @click="showRegister = true" class="btn btn-primary btn-lg">Get Started</button>
+                            <button @click="showLogin = true" class="btn btn-outline btn-lg">Login</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Notification System -->
+        <div x-show="notification.show" class="notification" :class="'notification-' + notification.type" x-transition>
+            <span x-text="notification.message"></span>
+            <button @click="hideNotification()" class="notification-close">&times;</button>
+        </div>
+    </div>
+
+    <script src="../static/js/main.js"></script>
+</body>
+</html>
