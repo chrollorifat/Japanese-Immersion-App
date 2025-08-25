@@ -62,13 +62,15 @@ function appData() {
         // Authentication
         async login() {
             try {
-                const formData = new FormData();
-                formData.append('username', this.loginForm.username);
-                formData.append('password', this.loginForm.password);
-
-                const response = await fetch(`${API_BASE}/auth/token`, {
+                const response = await fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: this.loginForm.username,
+                        password: this.loginForm.password
+                    })
                 });
 
                 if (response.ok) {

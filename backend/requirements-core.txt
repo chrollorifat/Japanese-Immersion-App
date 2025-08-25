@@ -1,0 +1,20 @@
+# Core web framework - these install easily
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Database - basic SQLAlchemy first
+sqlalchemy==2.0.23
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Utilities
+python-dotenv==1.0.0
+aiofiles==23.2.1
+requests==2.31.0
+
+# Development tools
+pytest==7.4.3
+black==23.11.0

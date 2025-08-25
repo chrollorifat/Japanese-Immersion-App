@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://username:password@localhost/japanese_learning_app")
+# Temporarily using SQLite - will switch to PostgreSQL once it's installed
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./japanese_learning_app.db")
 
 # Create SQLAlchemy engine
 engine = create_engine(
